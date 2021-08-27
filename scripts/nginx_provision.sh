@@ -18,7 +18,7 @@ else
       export myuser=$2
 fi
 
-# APT im nichtinteraktiven Modus starten
+# start APT in non-interactive mode
 export DEBIAN_FRONTEND=noninteractive
 
 echo "... starting nginx provision"
@@ -35,7 +35,7 @@ echo "... adding server block, default website and ownership"
 # default /var/www/html
 mkdir -p /var/www/$mydomain/html
 # server block configuration
-sed 's/your_domain/'$mydomain'/g' /vagrant_data/configs/your_domain.conf > /etc/nginx/sites-available/$mydomain
+sed 's/your_domain/'$mydomain'/g' /vagrant_data/configs/your_domain_nginx.conf > /etc/nginx/sites-available/$mydomain
 # linking
 ln -s /etc/nginx/sites-available/$mydomain /etc/nginx/sites-enabled/
 # activation
@@ -44,7 +44,7 @@ systemctl restart nginx
 
 echo "... default index.html and cloning docuserver files"
 # heredoc format
-cat <<EOF > /var/www/$mydomain/html/index.html
+cat <<_EOF_ > /var/www/$mydomain/html/index.html
 <html>
     <head>
         <title>Welcome to $mydomain!</title>
@@ -55,7 +55,7 @@ cat <<EOF > /var/www/$mydomain/html/index.html
         <br />
     </body>
 </html>
-EOF
+_EOF_
 cd /var/www/$mydomain/html
 git clone https://github.com/mavost/docuserver/
 
@@ -63,5 +63,5 @@ git clone https://github.com/mavost/docuserver/
 #adduser -g 'Nginx www user' -D $myuser
 chown -R $myuser:$myuser /var/www/$mydomain
 chmod -R 755 /var/www/$mydomain
-echo "... nginx provision successful"
+echo "... nginx provision completed"
 

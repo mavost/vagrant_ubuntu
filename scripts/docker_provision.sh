@@ -2,7 +2,7 @@
 # REMINDER: no reboot within scripts
 
 echo "... starting docker provision"
-# APT im nichtinteraktiven Modus starten
+# start APT in non-interactive mode
 export DEBIAN_FRONTEND=noninteractive
 
 # install Docker with current package
@@ -22,10 +22,10 @@ echo "... installing docker-compose, unzip and git"
 echo "... starting docker container"
 sleep 1
 
-echo "...building image and launching container"
+echo "... building image and launching container"
 docker run -d -p 8080:80 docker/getting-started
 
-echo "...end of docker provision"
+echo "... docker provision completed"
 
 
 

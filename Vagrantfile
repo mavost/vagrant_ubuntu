@@ -56,10 +56,16 @@ Vagrant.configure("2") do |config|
       mac: "00:50:56:00:00:FE",
       ip: "192.168.178.130",
       hostname: true
+    # use case 1 (NGINX webserver)
+    #var1 = "mydomain"
+    #var2 = "vagrant"
+    #machine.vm.provision "shell", path: "scripts/nginx_provision.sh", args: [var1, var2]
+    # use case 2 (Docker)
     #machine.vm.provision "shell", path: "scripts/docker_provision.sh"
-    var1 = "mydomain"
-    var2 = "vagrant"
-    machine.vm.provision "shell", path: "scripts/nginx_provision.sh", args: [var1, var2]
+    # use case 3 (LAMP stack)
+    var3 = "mydomain"
+    var4 = "vagrant"
+    machine.vm.provision "shell", path: "scripts/lamp_provision.sh", args: [var3, var4]
   end
   # Enable provisioning with a shell script. Additional provisioners such as
   # Ansible, Chef, Docker, Puppet and Salt are also available. Please see the
