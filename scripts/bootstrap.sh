@@ -20,7 +20,7 @@ ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 dpkg-reconfigure --frontend noninteractive tzdata
 
 echo "... adding other useful modules"
-apt-get -y install unzip git
+apt-get -y install unzip git curl
 
 echo "... basic provision completed"
 
