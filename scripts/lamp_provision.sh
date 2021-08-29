@@ -23,6 +23,8 @@ export DEBIAN_FRONTEND=noninteractive
 
 echo "... starting LAMP provision - Apache web server"
 # source: https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mysql-php-lamp-stack-on-ubuntu-20-04
+# apache runs a www-user as configured in /etc/apache2/envvars and used in /etc/apache2/apache2.conf
+# we change ownership of all hosted content at the very end of the script
 apt-get -y install apache2
 
 echo "... adjusting and enabling firewall"
@@ -49,9 +51,18 @@ DROP DATABASE IF EXISTS test;
 DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
 FLUSH PRIVILEGES;
 _EOF_
+echo "... adding mySQL login credentials"
+cat <<_EOF_ > /home/vagrant/.my.cnf
+[mysql]
+user=root
+password=$MYSQL_ROOT_PASSWORD
+_EOF_
+chmod 0600 /home/vagrant/.my.cnf
 
 echo "... continuing LAMP provision - PHP interpreter"
 apt-get -y install php libapache2-mod-php php-mysql
+# optional for piwigo gallery
+#apt-get -y install php libapache2-mod-php php-mysql php-imagick php-gd php-mbstring
 
 echo "... adding server block, default website and ownership"
 # default /var/www/html
@@ -74,7 +85,7 @@ cat <<_EOF_ > /var/www/$mydomain/index.html
         <title>Welcome to $mydomain!</title>
     </head>
     <body>
-        <h1>Success! The $mydomain server block is working for owner $myuser!</h1>
+        <h1>Success! The $mydomain server block is working!</h1>
         <a href="docuserver/index.html">Zur Doku-Wiki</a>
         <br />
     </body>
@@ -100,7 +111,7 @@ export MYSQL_USER=example_user
 export MYSQL_USER_PASSWORD=kolibri123
 mysql --user=root <<_EOF_
 CREATE DATABASE $MYSQL_DB;
-CREATE USER $MYSQL_USER@'%' IDENTIFIED WITH mysql_native_password BY $MYSQL_USER_PASSWORD;
+CREATE USER $MYSQL_USER@'%' IDENTIFIED WITH mysql_native_password BY '$MYSQL_USER_PASSWORD';
 GRANT ALL ON $MYSQL_DB.* TO $MYSQL_USER@'%';
 CREATE TABLE $MYSQL_DB.$MYSQL_TABLE ( item_id INT AUTO_INCREMENT, content VARCHAR(255), PRIMARY KEY(item_id) );
 INSERT INTO $MYSQL_DB.$MYSQL_TABLE (content) VALUES ("Apple");
@@ -115,12 +126,11 @@ cat <<_EOF_ > /var/www/$mydomain/shopping_list.php
   \$database = $MYSQL_DB;
   \$table = $MYSQL_TABLE;
   \$user = $MYSQL_USER;
-  \$password = $MYSQL_USER_PASSWORD
-  echo "Accessing the DB using PHP/PDO<br/>"
-  echo "Shopping List:<br/>"
+  \$password = $MYSQL_USER_PASSWORD;
+  echo "<h1>Accessing the DB '$database' using PHP/PDO</h1>";
+  echo "<h2>Shopping List in '$table':</h2><ol>";
   try {
     \$db = new PDO("mysql:host=localhost;dbname=\$database", \$user, \$password);
-    echo "<h2>TODO</h2><ol>";
     foreach(\$db->query("SELECT content FROM \$table") as \$row) {
       echo "<li>" . \$row['content'] . "</li>";
     }
@@ -133,7 +143,8 @@ cat <<_EOF_ > /var/www/$mydomain/shopping_list.php
 _EOF_
 
 echo "... changing ownership of hosting content"
-chown -R $myuser:$myuser /var/www/$mydomain
+chown -R www-data:www-data /var/www/$mydomain
 chmod -R 755 /var/www/$mydomain
+adduser vagrant www-data
 echo "... LAMP provision completed"
 
